@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Game</title>
+</head>
+<body>
+    <h1>Quiz Game</h1>
+
+    {% if question %}
+        <h2>{{ question.text }}</h2>
+        {% if question.question_type == "TF" %}
+            <button>True</button>
+            <button>False</button>
+        {% elif question.question_type == "MC" %}
+            <ul>
+                {% if question.option_a %}<li>{{ question.option_a }}</li>{% endif %}
+                {% if question.option_b %}<li>{{ question.option_b }}</li>{% endif %}
+                {% if question.option_c %}<li>{{ question.option_c }}</li>{% endif %}
+                {% if question.option_d %}<li>{{ question.option_d }}</li>{% endif %}
+            </ul>
+        {% endif %}
+    {% else %}
+        <p>No question available.</p>
+    {% endif %}
+</body>
+</html>
