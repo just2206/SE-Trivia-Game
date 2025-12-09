@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Quiz</title>
+    <script>
+        function addForm() {
+            const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+            const formCount = parseInt(totalForms.value);
+            const formContainer = document.getElementById('form-container');
+            const emptyForm = document.getElementById('empty-form').innerHTML.replace(/__prefix__/g, formCount);
+
+            formContainer.insertAdjacentHTML('beforeend', emptyForm);
+            totalForms.value = formCount + 1;
+            // initialize UI for the newly added form
+            initQuestionUIForIndex(formCount);
+        }
+
+        function initQuestionUIForIndex(index) {
+            const prefix = `form-${index}-`;
+            const qtypeSel = document.getElementById('id_' + prefix + 'question_type');
+            if (!qtypeSel) return;
+            qtypeSel.addEventListener('change', function() {
+                toggleTFUI(index);
+            });
+
+            function onCheckboxChange(cbId) {
+                const cb = document.getElementById(cbId);
+                if (!cb) return;
+                cb.addEventListener('change', function(e) {
+                    if (cb.checked) {
+                        // uncheck other checkboxes for this question
+                        const allIds = [];
+                        ['option_a','option_b','option_c','option_d'].forEach(function(opt){ allIds.push('id_' + prefix + opt + '_correct_cb'); });
+                        allIds.push('id_' + prefix + 'tf_true_cb');
+                        allIds.push('id_' + prefix + 'tf_false_cb');
+                        allIds.forEach(function(otherId) {
+                            if (otherId !== cbId) {
+                                const other = document.getElementById(otherId);
+                                if (other) other.checked = false;
+                            }
+                        });
+                    }
+                    updateHiddenCorrectField(index);
+                });
+            }
+
+            // attach checkbox handlers to option checkboxes
+            ['option_a','option_b','option_c','option_d'].forEach(function(opt){
+                onCheckboxChange('id_' + prefix + opt + '_correct_cb');
+            });
+
+            // TF checkboxes
+            onCheckboxChange('id_' + prefix + 'tf_true_cb');
+            onCheckboxChange('id_' + prefix + 'tf_false_cb');
+
+            // initial toggle state
+            toggleTFUI(index);
+        }
+
+        function toggleTFUI(index) {
+            const prefix = `form-${index}-`;
+            const qtype = (document.getElementById('id_' + prefix + 'question_type') || {}).value;
+            const mcRow = document.getElementById('mc-' + index);
+            const tfRow = document.getElementById('tf-' + index);
+            if (qtype === 'TF') {
+                if (mcRow) mcRow.style.display = 'none';
+                if (tfRow) tfRow.style.display = '';
+            } else {
+                if (mcRow) mcRow.style.display = '';
+                if (tfRow) tfRow.style.display = 'none';
+            }
+        }
+
+        function updateHiddenCorrectField(index) {
+            const prefix = `form-${index}-`;
+            // look for checked checkboxes in MC options first
+            const opts = ['option_a','option_b','option_c','option_d'];
+            let selected = null;
+            for (let opt of opts) {
+                const cb = document.getElementById('id_' + prefix + opt + '_correct_cb');
+                const valEl = document.getElementById('id_' + prefix + opt);
+                if (cb && cb.checked && valEl && valEl.value) {
+                    selected = valEl.value;
+                    break; // only first checked counts
+                }
+            }
+
+            // if none found, look for TF checkboxes
+            if (!selected) {
+                const tcb = document.getElementById('id_' + prefix + 'tf_true_cb');
+                const fcb = document.getElementById('id_' + prefix + 'tf_false_cb');
+                if (tcb && tcb.checked) selected = 'True';
+                if (fcb && fcb.checked) selected = 'False';
+            }
+
+            // write into hidden correct_answer field
+            const hidden = document.getElementById('id_' + prefix + 'correct_answer');
+            if (hidden) hidden.value = selected || '';
+        }
+
+        // Initialize existing forms on DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            const total = parseInt(document.getElementById('id_form-TOTAL_FORMS').value || '0');
+            for (let i=0;i<total;i++) initQuestionUIForIndex(i);
+
+            // before submit, ensure hidden fields are updated
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(){
+                const totalForms = parseInt(document.getElementById('id_form-TOTAL_FORMS').value || '0');
+                for (let i=0;i<totalForms;i++) updateHiddenCorrectField(i);
+            });
+        });
+    </script>
+    <style>
+        .option-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+        .option-row input[type="text"] { flex:1; }
+        /* error highlighting */
+        .field-error input, .field-error select, .field-error textarea { border: 2px solid #c00; background: #fff0f0; }
+        .field-error label { color: #900; font-weight: bold; }
+        .field-errors { color: #900; margin-top:4px; margin-bottom:8px; font-size:0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Create Quiz</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <h2>Quiz Info</h2>
+        <!-- render quiz_form fields with per-field error highlights -->
+        <div class="quiz-info">
+            <div class="field-row {% if quiz_form.title.errors %}field-error{% endif %}">
+                {{ quiz_form.title.label_tag }}<br>
+                {{ quiz_form.title }}
+                {% if quiz_form.title.errors %}
+                    <div class="field-errors">{{ quiz_form.title.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field-row {% if quiz_form.is_public.errors %}field-error{% endif %}">
+                {{ quiz_form.is_public.label_tag }}<br>
+                {{ quiz_form.is_public }}
+                {% if quiz_form.is_public.errors %}
+                    <div class="field-errors">{{ quiz_form.is_public.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field-row {% if quiz_form.is_timed.errors %}field-error{% endif %}">
+                {{ quiz_form.is_timed.label_tag }}<br>
+                {{ quiz_form.is_timed }}
+                {% if quiz_form.is_timed.errors %}
+                    <div class="field-errors">{{ quiz_form.is_timed.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field-row {% if quiz_form.time_limit_seconds.errors %}field-error{% endif %}">
+                {{ quiz_form.time_limit_seconds.label_tag }}<br>
+                {{ quiz_form.time_limit_seconds }}
+                {% if quiz_form.time_limit_seconds.errors %}
+                    <div class="field-errors">{{ quiz_form.time_limit_seconds.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <h2>Questions</h2>
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+            <div class="field-errors">{{ formset.non_form_errors|striptags }}</div>
+        {% endif %}
+        <div id="form-container">
+            {% for form in formset %}
+                <div class="question-form" id="question-form-{{ forloop.counter0 }}" style="border:1px solid #ccc;padding:8px;margin-bottom:8px;">
+                    {% if form.non_field_errors %}
+                        <div class="field-errors">{{ form.non_field_errors|striptags }}</div>
+                    {% endif %}
+                    <p class="{% if form.text.errors %}field-error{% endif %}">
+                        {{ form.text.label_tag }}<br>
+                        {{ form.text }}
+                        {% if form.text.errors %}<div class="field-errors">{{ form.text.errors|striptags }}</div>{% endif %}
+                    </p>
+
+                    <p class="{% if form.question_type.errors %}field-error{% endif %}">
+                        {{ form.question_type.label_tag }}<br>
+                        {{ form.question_type }}
+                        {% if form.question_type.errors %}<div class="field-errors">{{ form.question_type.errors|striptags }}</div>{% endif %}
+                    </p>
+
+                    <!-- MC options block -->
+                    <div id="mc-{{ forloop.counter0 }}">
+                        <div class="option-row {% if form.option_a.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-option_a_correct_cb" />
+                            {{ form.option_a.label_tag }}
+                            {{ form.option_a }}
+                        </div>
+                        {% if form.option_a.errors %}<div class="field-errors">{{ form.option_a.errors|striptags }}</div>{% endif %}
+
+                        <div class="option-row {% if form.option_b.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-option_b_correct_cb" />
+                            {{ form.option_b.label_tag }}
+                            {{ form.option_b }}
+                        </div>
+                        {% if form.option_b.errors %}<div class="field-errors">{{ form.option_b.errors|striptags }}</div>{% endif %}
+
+                        <div class="option-row {% if form.option_c.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-option_c_correct_cb" />
+                            {{ form.option_c.label_tag }}
+                            {{ form.option_c }}
+                        </div>
+                        {% if form.option_c.errors %}<div class="field-errors">{{ form.option_c.errors|striptags }}</div>{% endif %}
+
+                        <div class="option-row {% if form.option_d.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-option_d_correct_cb" />
+                            {{ form.option_d.label_tag }}
+                            {{ form.option_d }}
+                        </div>
+                        {% if form.option_d.errors %}<div class="field-errors">{{ form.option_d.errors|striptags }}</div>{% endif %}
+                    </div>
+
+                    <!-- TF block -->
+                    <div id="tf-{{ forloop.counter0 }}" style="display:none;">
+                        <div class="option-row {% if form.correct_answer.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-tf_true_cb" />
+                            <label for="id_form-{{ forloop.counter0 }}-tf_true_cb">True</label>
+                        </div>
+                        <div class="option-row {% if form.correct_answer.errors %}field-error{% endif %}">
+                            <input type="checkbox" id="id_form-{{ forloop.counter0 }}-tf_false_cb" />
+                            <label for="id_form-{{ forloop.counter0 }}-tf_false_cb">False</label>
+                        </div>
+                        {% if form.correct_answer.errors %}<div class="field-errors">{{ form.correct_answer.errors|striptags }}</div>{% endif %}
+                    </div>
+
+                    <!-- hidden correct answer field (managed by JS) -->
+                    {{ form.correct_answer }}
+
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Hidden empty form template -->
+        <div id="empty-form" style="display:none;">
+            <div class="question-form">
+                <p>
+                    {{ formset.empty_form.text.label_tag }}<br>
+                    {{ formset.empty_form.text }}
+                </p>
+                <p>
+                    {{ formset.empty_form.question_type.label_tag }}<br>
+                    {{ formset.empty_form.question_type }}
+                </p>
+
+                <div id="mc-__prefix__">
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-option_a_correct_cb" />
+                        {{ formset.empty_form.option_a.label_tag }}
+                        {{ formset.empty_form.option_a }}
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-option_b_correct_cb" />
+                        {{ formset.empty_form.option_b.label_tag }}
+                        {{ formset.empty_form.option_b }}
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-option_c_correct_cb" />
+                        {{ formset.empty_form.option_c.label_tag }}
+                        {{ formset.empty_form.option_c }}
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-option_d_correct_cb" />
+                        {{ formset.empty_form.option_d.label_tag }}
+                        {{ formset.empty_form.option_d }}
+                    </div>
+                </div>
+
+                <div id="tf-__prefix__" style="display:none;">
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-tf_true_cb" />
+                        <label for="id_form-__prefix__-tf_true_cb">True</label>
+                    </div>
+                    <div class="option-row">
+                        <input type="checkbox" id="id_form-__prefix__-tf_false_cb" />
+                        <label for="id_form-__prefix__-tf_false_cb">False</label>
+                    </div>
+                </div>
+
+                {{ formset.empty_form.correct_answer }}
+            </div>
+        </div>
+
+        <button type="button" onclick="addForm()">Add Question</button>
+        <button type="submit">Create Quiz</button>
+    </form>
+</body>
+</html>

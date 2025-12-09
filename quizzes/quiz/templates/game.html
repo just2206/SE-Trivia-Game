@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if quiz %}{{ quiz.title }} - Quiz Game{% else %}Quiz Game{% endif %}</title>
+    <style>
+        .attempts-list { border:1px solid #ddd; padding:8px; margin-bottom:12px; }
+        .attempt-row { padding:6px 0; border-bottom:1px dashed #eee; }
+        .attempt-row:last-child { border-bottom:none; }
+    </style>
+</head>
+<body>
+    <h1>{% if quiz %}{{ quiz.title }}{% else %}Quiz Game{% endif %}</h1>
+
+    <!-- Navigation: allow exiting to Home or Quiz List while taking a quiz -->
+    <div style="margin-bottom:12px;">
+        <a href="{% url 'home' %}" onclick="return confirmLeave();"><button>Home</button></a>
+        <a href="{% url 'quizzes' %}" onclick="return confirmLeave();"><button>Quiz List</button></a>
+    </div>
+
+    <script>
+        // Warn user before leaving an in-progress quiz (optional)
+        function confirmLeave(){
+            // If the page contains a visible question (i.e. quiz in progress), confirm navigation
+            var inProgress = {% if completed %}false{% else %}true{% endif %};
+            if(inProgress){
+                return confirm('You are currently taking a quiz — are you sure you want to leave? Your progress so far is saved.');
+            }
+            return true;
+        }
+    </script>
+
+    {% if attempts %}
+        <div class="attempts-list">
+            <h3>Your attempts</h3>
+            {% for at in attempts %}
+                <div class="attempt-row">
+                    <strong>Attempt {{ forloop.counter }}:</strong>
+                    Started: {{ at.attempt.started_at|date:"Y-m-d H:i" }}
+                    {% if at.attempt.completed_at %} — Completed: {{ at.attempt.completed_at|date:"Y-m-d H:i" }}{% endif %}
+                    <br>
+                    Answered: {{ at.total }} — Correct: {{ at.correct }} — Accuracy: {{ at.accuracy }}%
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if completed %}
+        <h2>Quiz Complete</h2>
+        <p>Your final accuracy: {{ accuracy }}%</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="retake" value="1">Retake Quiz</button>
+        </form>
+
+        <a href="{% url 'quizzes' %}">Back to quizzes</a>
+    {% else %}
+        {% if question %}
+            <h2>{{ question.text }}</h2>
+            {% if q_number and q_total %}
+                <div>Question {{ q_number }} of {{ q_total }}</div>
+            {% endif %}
+
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="question_id" value="{{ question.id }}"/>
+
+                {% if question.question_type == "TF" %}
+                    <button type="submit" name="answer" value="True">True</button>
+                    <button type="submit" name="answer" value="False">False</button>
+                {% elif question.question_type == "MC" %}
+                    <ul style="list-style:none;padding:0;">
+                        {% if question.option_a %}<li><button type="submit" name="answer" value="{{ question.option_a }}">{{ question.option_a }}</button></li>{% endif %}
+                        {% if question.option_b %}<li><button type="submit" name="answer" value="{{ question.option_b }}">{{ question.option_b }}</button></li>{% endif %}
+                        {% if question.option_c %}<li><button type="submit" name="answer" value="{{ question.option_c }}">{{ question.option_c }}</button></li>{% endif %}
+                        {% if question.option_d %}<li><button type="submit" name="answer" value="{{ question.option_d }}">{{ question.option_d }}</button></li>{% endif %}
+                    </ul>
+                {% else %}
+                    <input type="text" name="answer" placeholder="Your answer" />
+                    <button type="submit">Submit</button>
+                {% endif %}
+            </form>
+        {% else %}
+            <p>No question available for this quiz yet.</p>
+        {% endif %}
+
+        {% if feedback %}
+            <div id="feedback" style="margin-top:1rem;">
+                {% if feedback.is_correct %}
+                    <strong style="color:green;">Correct!</strong>
+                {% else %}
+                    <strong style="color:red;">Incorrect.</strong>
+                    <div>Correct answer: {{ feedback.correct }}</div>
+                {% endif %}
+                <div>Your accuracy so far: {{ accuracy }}%</div>
+            </div>
+
+            {% if next_question_id %}
+                <script>
+                    (function(){
+                        var seconds = {{ redirect_after_seconds|default:2 }};
+                        setTimeout(function(){
+                            window.location.href = "{% url 'quiz-game' quiz.id %}" + "?q=" + {{ next_question_id }};
+                        }, seconds * 1000);
+                    })();
+                </script>
+            {% else %}
+                <script>
+                    // no next question -> go to completion view (same URL without q param triggers completion check)
+                    setTimeout(function(){
+                        window.location.href = "{% url 'quiz-game' quiz.id %}";
+                    }, {{ redirect_after_seconds|default:2 }} * 1000);
+                </script>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+</body>
+</html>

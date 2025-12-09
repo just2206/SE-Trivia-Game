@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Available Quizzes</title>
+</head>
+<body>
+    <h1>Available Quizzes</h1>
+
+    <a href="{% url 'home' %}"><button>Home</button></a>
+
+    {% if quizzes %}
+        <ul>
+            {% for quiz in quizzes %}
+                <li>
+                    <a href="{% url 'quiz-game' quiz.id %}">
+                        {{ quiz.title }}
+                    </a>
+                    <p>{{ quiz.description }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No quizzes available.</p>
+    {% endif %}
+
+    <br>
+    <a href="{% url 'create_quiz' %}">
+        <button>Create New Quiz</button>
+    </a>
+
+</body>
+</html>

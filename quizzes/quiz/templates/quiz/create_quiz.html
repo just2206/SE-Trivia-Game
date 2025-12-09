@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Quiz</title>
+    <script>
+        function addForm() {
+            const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+            const formCount = parseInt(totalForms.value);
+            const formContainer = document.getElementById('form-container');
+            const emptyForm = document.getElementById('empty-form').innerHTML.replace(/__prefix__/g, formCount);
+
+            formContainer.insertAdjacentHTML('beforeend', emptyForm);
+            totalForms.value = formCount + 1;
+        }
+    </script>
+</head>
+<body>
+    <h1>Create Quiz</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <h2>Quiz Info</h2>
+        {{ quiz_form.as_p }}
+
+        <h2>Questions</h2>
+        {{ formset.management_form }}
+        <div id="form-container">
+            {% for form in formset %}
+                <div class="question-form">
+                    {{ form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Hidden empty form template -->
+        <div id="empty-form" style="display:none;">
+            <div class="question-form">
+                {{ formset.empty_form.as_p }}
+            </div>
+        </div>
+
+        <button type="button" onclick="addForm()">Add Question</button>
+        <button type="submit">Create Quiz</button>
+    </form>
+</body>
+</html>
+
+
