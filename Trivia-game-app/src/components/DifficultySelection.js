@@ -5,10 +5,11 @@ function DifficultySelection({ title, onSelect }) {
   const difficultyOptions = ['Beginner', 'Normal', 'Hard', 'Extreme'];
 
   // Handle difficulty selection and start the quiz
-  const handleSelection = (difficulty) => {
-    console.log(`Selected difficulty: ${difficulty}`);
-    onSelect('play-quiz'); // Navigate to the question screen
-  };
+    const handleSelection = (difficulty) => {
+        console.log(`Selected difficulty: ${difficulty}`);
+        // ⭐️ PASS THE SCREEN AND THE SELECTED DIFFICULTY ⭐️
+        onSelect('play-quiz', difficulty); 
+    };
 
   return (
     <div className="difficulty-selection-screen">
