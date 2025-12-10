@@ -2,14 +2,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
+# ADD CONFIGURATION HERE #
 const firebaseConfig = {
-  apiKey: "AIzaSyBdjwJdPdHJmBiY2QXSGXCiwzvftJowxB4",
-  authDomain: "final-project---se--25.firebaseapp.com",
-  projectId: "final-project---se--25",
-  storageBucket: "final-project---se--25.firebasestorage.app",
-  messagingSenderId: "529188519972",
-  appId: "1:529188519972:web:1b464d8262bc40d832d8b1",
-  measurementId: "G-6S5KNEHD7H"
+  apiKey: "API KEY",
+  authDomain: "DOMAIN",
+  projectId: "ID",
+  storageBucket: "STORAGE",
+  messagingSenderId: "MESSAGING",
+  appId: "APP",
+  measurementId: "MEASUREMENT"
 };
 
 // Initialize Firebase
