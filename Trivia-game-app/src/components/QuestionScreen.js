@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 // The component is now designed to handle one question at a time from a list.
 
 // Updated props: onQuizFinish is the final callback to App.js
-function QuestionScreen({ title, onQuizFinish, fetchQuestions, challengeId }) { 
+function QuestionScreen({ title, onQuizFinish, fetchQuestions, challengeId, difficultyLevel }) {
     // State for the list of questions for this challenge
     const [questions, setQuestions] = useState([]);
     // State for overall score tracking
@@ -21,7 +21,7 @@ function QuestionScreen({ title, onQuizFinish, fetchQuestions, challengeId }) {
         const loadQuestions = async () => {
             if (challengeId) {
                 // Fetch the real questions from the backend API (we'll implement this function next)
-                const fetchedQuestions = await fetchQuestions(challengeId); 
+                const fetchedQuestions = await fetchQuestions(challengeId, difficultyLevel);
                 setQuestions(fetchedQuestions);
             }
             setIsLoading(false);
