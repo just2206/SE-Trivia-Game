@@ -17,6 +17,7 @@ const BACKEND_API_URL = 'http://localhost:3000/api';
 function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
   const [user, setUser] = useState(null); 
+  const [difficultyLevel, setDifficultyLevel] = useState(null);
   const [quizResult, setQuizResult] = useState({ correct: 0, total: 0 });
   // State to track the ID of the challenge/quiz being played, CRITICAL for both score submission and leaderboard fetching.
   const [challengeId, setChallengeId] = useState(null);
@@ -141,10 +142,10 @@ function App() {
     }
   };
 
-  const fetchQuestions = async (challengeId) => {
-    // You might want to include difficulty in the query string later
+  const fetchQuestions = async (challengeId, difficulty) => { 
     try {
-        const response = await fetch(`${BACKEND_API_URL}/questions/${challengeId}`);
+        // Send difficulty as a query parameter
+        const response = await fetch(`${BACKEND_API_URL}/questions/${challengeId}?difficulty=${difficulty}`);
         
         if (!response.ok) {
             console.error(`Error fetching questions: ${response.statusText}`);
@@ -190,33 +191,27 @@ function App() {
               />;
       case 'play-difficulty':
         return <DifficultySelection 
-                   title={TRIVIA_GAME_NAME} 
-                   // You would get the real ID from the backend here
-                   onSelect={(difficulty) => { 
-                       // 2. Setting a mock challengeId just to demonstrate the flow
-                       const mockId = 'cat1-' + difficulty; 
-                       setChallengeId(mockId); 
-                       setCurrentScreen('play-quiz'); 
-                   }} 
-                />;
-      // case 'play-quiz':
-      //   // NOTE: In a real app, this screen would calculate the score and call setScore
-      //   return <QuestionScreen title={TRIVIA_GAME_NAME} onNext={() => setCurrentScreen('score')} />;
+               title={TRIVIA_GAME_NAME} 
+               onSelect={(screen, difficulty) => { // Now accepts two parameters
+                   setDifficultyLevel(difficulty); // Set the difficulty level!
+                   setCurrentScreen(screen);
+               }} 
+           />;
+      case 'play-quiz':
+        return <QuestionScreen 
+               title={TRIVIA_GAME_NAME} 
+               challengeId={challengeId} 
+               difficultyLevel={difficultyLevel} // Pass the new state!
+               fetchQuestions={fetchQuestions} 
+               onQuizFinish={(result) => {
+                   setQuizResult(result); 
+                   setCurrentScreen('score'); 
+               }}
+           />;
       case 'create-setup':
         return <CreateQuizSetup title={TRIVIA_GAME_NAME} onNext={() => setCurrentScreen('create-questions')} />;
       case 'create-questions':
         return <CreateQuizQuestion title={TRIVIA_GAME_NAME} onComplete={() => setCurrentScreen('selection')} />;
-      case 'play-quiz':
-        return <QuestionScreen 
-               title={TRIVIA_GAME_NAME} 
-               challengeId={challengeId} // Pass the ID needed for fetching
-               fetchQuestions={fetchQuestions} // Pass the new fetching function
-               onQuizFinish={(result) => {
-                   setQuizResult(result); // Set the final score (e.g., {correct: 5, total: 10})
-                   setCurrentScreen('score'); // Move to score screen
-               }}
-           />;
-
       case 'score':
         return <ScoreScreen 
             title={TRIVIA_GAME_NAME} 
