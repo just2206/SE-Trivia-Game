@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function LoginScreen({ title, onLogin }) {
+function LoginScreen({ title, onLogin, onGoogleLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -38,6 +38,18 @@ function LoginScreen({ title, onLogin }) {
           />
           <button type="submit" className="primary-btn small-btn">Sign in</button>
         </form>
+        
+        {/* --- ADD GOOGLE SIGN-IN HERE --- */}
+        {onGoogleLogin && (
+          <button 
+            onClick={onGoogleLogin} 
+            className="secondary-btn small-btn google-btn"
+            style={{ marginTop: '15px' }} // Simple inline style for spacing
+          >
+            🚀 Sign in with Google
+          </button>
+        )}
+        
       </div>
     </div>
   );
