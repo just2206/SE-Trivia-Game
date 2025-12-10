@@ -16,7 +16,7 @@ app.use(express.json());
 
 // --- 2. FIREBASE ADMIN & DB INITIALIZATION ---
 // !!! CRITICAL: UPDATE THIS PATH TO YOUR ACTUAL JSON FILE NAME !!!
-const serviceAccount = require('./final-project---se--25-firebase-adminsdk-fbsvc-1ade844c56.json'); 
+const serviceAccount = require('./key.json'); 
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
