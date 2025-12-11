@@ -9,14 +9,20 @@ function CreateQuizSetup({ title, onNext }) {
   const questionOptions = [5, 10, 15, 20];
 
   const handleNext = () => {
-    if (category && difficulty && numQuestions) {
-      // In a real app, you would pass these values to a state manager
-      console.log(`Quiz Setup: Category: ${category}, Difficulty: ${difficulty}, Qty: ${numQuestions}`);
-      onNext(); // Navigate to the question input screen
-    } else {
-      alert('Please complete all fields!');
-    }
-  };
+  // Ensure numQuestions is a number before passing it
+  const quizLimit = parseInt(numQuestions, 10); 
+  
+  if (category && difficulty && quizLimit > 0) {
+    // Pass the category, difficulty, AND the number of questions back to App.js
+    onNext({
+      category: category,
+      difficulty: difficulty,
+      limit: quizLimit // <-- PASS THE DATA HERE
+    });
+  } else {
+    alert('Please complete all fields!');
+  }
+};
 
   return (
     <div className="create-quiz-setup">
