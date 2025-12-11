@@ -17,17 +17,18 @@ function QuestionScreen({ title, onQuizFinish, fetchQuestions, challengeId, diff
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch the questions when the component first loads
-    useEffect(() => {
-        const loadQuestions = async () => {
-            if (challengeId) {
-                // Fetch the real questions from the backend API (we'll implement this function next)
-                const fetchedQuestions = await fetchQuestions(challengeId, difficultyLevel);
-                setQuestions(fetchedQuestions);
-            }
-            setIsLoading(false);
-        };
-        loadQuestions();
-    }, [challengeId, fetchQuestions]);
+    useEffect(() => {
+        const loadQuestions = async () => {
+            if (challengeId) {
+                // Fetch the real questions from the backend API (we'll implement this function next)
+                const fetchedQuestions = await fetchQuestions(challengeId, difficultyLevel);
+                setQuestions(fetchedQuestions || []);
+            }
+            setIsLoading(false);
+        };
+        loadQuestions();
+    // Add difficultyLevel here 
+    }, [challengeId, fetchQuestions, difficultyLevel]);
 
 
     // Return early if loading or no questions
