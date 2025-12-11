@@ -13,7 +13,17 @@ const port = process.env.PORT || 3001;
 
 // Middleware Setup
 // Enable CORS for frontend access (needed since React runs on a different port/process)
-app.use(cors()); 
+// Configure CORS options
+const corsOptions = {
+  // Allow only your specific Render frontend domain
+  origin: 'https://se-trivia-game.onrender.com', 
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allow common methods
+  credentials: true, // Allow cookies/authorization headers
+};
+
+// Apply the configured CORS middleware
+app.use(cors(corsOptions)); 
+app.use(express.json()); 
 // Allows Express to read JSON data sent in request bodies
 app.use(express.json()); 
 
