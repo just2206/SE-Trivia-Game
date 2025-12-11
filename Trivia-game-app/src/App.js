@@ -22,10 +22,15 @@ function App() {
   // State to track the ID of the challenge/quiz being played, CRITICAL for both score submission and leaderboard fetching.
   const [challengeId, setChallengeId] = useState(null);
 
-  // Simple function for simulated login (if kept for testing)
-  const handleLogin = (simulatedUsername) => {
-    setCurrentScreen('selection'); 
-  };
+  const [quizCategory, setQuizCategory] = useState('');
+  const [quizDifficulty, setQuizDifficulty] = useState('');
+  const [quizLimit, setQuizLimit] = useState(0); // <--- NEW STATE FOR QUESTION COUNT
+  // ---------------------------------------------
+
+  // Simple function for simulated login (if kept for testing)
+  const handleLogin = (simulatedUsername) => {
+    setCurrentScreen('selection'); 
+  };
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -162,6 +167,46 @@ function App() {
     }
   };
 
+  const handleSetQuizSetup = (setupData) => {
+    setQuizCategory(setupData.category);
+    setQuizDifficulty(setupData.difficulty);
+    setQuizLimit(setupData.limit); // Store the number of questions!
+    setCurrentScreen('create-questions');
+  };
+
+  // NEW FUNCTION TO SECURELY SAVE THE QUIZ
+const saveNewQuizToBackend = async (quizData) => {
+    if (!user) {
+        console.error("User not logged in. Cannot save quiz.");
+        return;
+    }
+
+    try {
+        const idToken = await user.getIdToken(); 
+        
+        const response = await fetch(`${BACKEND_API_URL}/quiz`, { // NEW ENDPOINT
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`, // Securely identify the user
+            },
+            body: JSON.stringify(quizData), // Send the complete quiz object
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Quiz creation successful:", data.quizId);
+            return data.quizId;
+        } else {
+            const errorData = await response.json();
+            console.error("Quiz creation failed on server:", errorData.error);
+        }
+
+    } catch (error) {
+        console.error("Error saving new quiz:", error);
+    }
+};
+
   // Function to determine which screen to render
   const renderScreen = () => {
     switch (currentScreen) {
@@ -209,9 +254,21 @@ function App() {
                }}
            />;
       case 'create-setup':
-        return <CreateQuizSetup title={TRIVIA_GAME_NAME} onNext={() => setCurrentScreen('create-questions')} />;
-      case 'create-questions':
-        return <CreateQuizQuestion title={TRIVIA_GAME_NAME} onComplete={() => setCurrentScreen('selection')} />;
+        // PASS THE NEW HANDLER TO RECEIVE SETUP DATA
+        return <CreateQuizSetup 
+                 title={TRIVIA_GAME_NAME} 
+                 onNext={handleSetQuizSetup} // <--- UPDATED HANDLER
+                 
+              />;
+      case 'create-questions':
+      return <CreateQuizQuestion 
+               title={TRIVIA_GAME_NAME} 
+               totalQuestions={quizLimit} 
+               quizCategory={quizCategory} 
+               quizDifficulty={quizDifficulty} 
+                onSave={saveNewQuizToBackend} // <--- NEW PROP
+               onComplete={() => setCurrentScreen('selection')} 
+            />;
       case 'score':
         return <ScoreScreen 
             title={TRIVIA_GAME_NAME} 
