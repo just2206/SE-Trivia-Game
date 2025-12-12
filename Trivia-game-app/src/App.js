@@ -12,7 +12,7 @@ import { auth } from './firebase';
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 
 const TRIVIA_GAME_NAME = "Trivia Game Name";
-const BACKEND_API_URL = 'https://se-trivia-game-api.onrender.com/api';
+const BACKEND_API_URL = 'https://se-trivia-game-api.onrender.com';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
@@ -65,7 +65,7 @@ function App() {
     try {
       const idToken = await user.getIdToken(); 
       
-      const response = await fetch(`${BACKEND_API_URL}/score`, {
+      const response = await fetch(`${BACKEND_API_URL}/api/score`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`${BACKEND_API_URL}/leaderboard/${challengeId}`);
+      const response = await fetch(`${BACKEND_API_URL}/api/leaderboard/${challengeId}`);
 
       if (!response.ok) {
         console.error(`Error fetching leaderboard: ${response.statusText}`);
@@ -131,7 +131,7 @@ function App() {
 
   const fetchChallenges = async () => {
     try {
-        const response = await fetch(`${BACKEND_API_URL}/challenges`);
+        const response = await fetch(`${BACKEND_API_URL}/api/challenges`);
         
         if (!response.ok) {
             console.error(`Error fetching challenges: ${response.statusText}`);
@@ -150,7 +150,7 @@ function App() {
   const fetchQuestions = async (challengeId, difficulty) => { 
     try {
         // Send difficulty as a query parameter
-        const response = await fetch(`${BACKEND_API_URL}/questions/${challengeId}?difficulty=${difficulty}`);
+        const response = await fetch(`${BACKEND_API_URL}/api/questions/${challengeId}?difficulty=${difficulty}`);
         
         if (!response.ok) {
             console.error(`Error fetching questions: ${response.statusText}`);
@@ -184,7 +184,7 @@ const saveNewQuizToBackend = async (quizData) => {
     try {
         const idToken = await user.getIdToken(); 
         
-        const response = await fetch(`${BACKEND_API_URL}/quiz`, { // NEW ENDPOINT
+        const response = await fetch(`${BACKEND_API_URL}/api/quiz`, { // NEW ENDPOINT
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
