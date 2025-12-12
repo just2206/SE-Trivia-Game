@@ -80,7 +80,7 @@ const isAuthenticated = async (req, res, next) => {
 app.get('/api/challenges', async (req, res) => {
     try {
         const challengesRef = db.collection('challenges');
-        const customQuizzesRef = db.collection('quizzes'); // <-- New Collection Ref
+        // const customQuizzesRef = db.collection('quizzes'); // <-- New Collection Ref
 
         // 1. Fetch fixed challenges
         const challengesSnapshot = await challengesRef.get();
@@ -90,12 +90,12 @@ app.get('/api/challenges', async (req, res) => {
             challenges.push({ id: doc.id, ...doc.data(), isCustom: false }); 
         });
 
-        // 2. Fetch custom quizzes (which already have isCustom: true from the POST route)
-        const customQuizzesSnapshot = await customQuizzesRef.get();
-        customQuizzesSnapshot.forEach(doc => {
-            // Note: Custom quizzes already have isCustom: true in the document data
-            challenges.push({ id: doc.id, ...doc.data() }); 
-        });
+        // // 2. Fetch custom quizzes (which already have isCustom: true from the POST route)
+        // const customQuizzesSnapshot = await customQuizzesRef.get();
+        // customQuizzesSnapshot.forEach(doc => {
+        //     // Note: Custom quizzes already have isCustom: true in the document data
+        //     challenges.push({ id: doc.id, ...doc.data() }); 
+        // });
 
         // 3. Combine and send both lists
         res.status(200).json(challenges);
