@@ -1,15 +1,44 @@
 // server.js - The main backend server for the Trivia Game
 const admin = require('firebase-admin');
 
-admin.initializeApp();
-const db = admin.firestore();
-
 // --- 1. IMPORTS & EXPRESS SETUP ---
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// --- ADD THIS BLOCK ---
+let serviceAccount;
+try {
+    // 1. Try to parse the environment variable content
+    const serviceAccountJsonString = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!serviceAccountJsonString) {
+        throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is not set.");
+    }
+    serviceAccount = JSON.parse(serviceAccountJsonString);
+} catch (e) {
+    console.error("CRITICAL ERROR: Failed to parse Firebase Service Account JSON.", e);
+    // You can't recover from this, so you might want to exit or use a fallback
+    // Since this is a critical deployment step, we'll let the error bubble up
+}
+// ----------------------
+
+// Update the initialization:
+try {
+    // 2. Initialize the Admin SDK explicitly with the parsed key
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("Firebase Admin SDK initialized successfully.");
+} catch (e) {
+    console.error("CRITICAL ERROR: Failed to initialize Firebase Admin SDK.", e);
+}
+
+
+const db = admin.firestore();
+
+
 
 // Middleware Setup
 // Enable CORS for frontend access (needed since React runs on a different port/process)
