@@ -12,7 +12,7 @@ import { auth } from './firebase';
 import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 
 const TRIVIA_GAME_NAME = "Trivia Game Name";
-const BACKEND_API_URL = 'https://se-trivia-game-api.onrender.com';
+const BACKEND_API_URL = 'https://se-trivia-game-api.onrender.com/api';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
